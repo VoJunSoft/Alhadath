@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "564966180435",
+    "project_id": "alhadath-d0351",
+    "storage_bucket": "alhadath-d0351.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:564966180435:android:d4a7c3c26659bf1cc568a6",
+        "android_client_info": {
+          "package_name": "com.junglesoft.alhadath"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "564966180435-be7bb650rchhiksk9591vp83d1leo04i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBDLF1U4YEUiP1cmEX7qRrLzzSXvsxQkp4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "564966180435-be7bb650rchhiksk9591vp83d1leo04i.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
