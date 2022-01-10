@@ -15,7 +15,7 @@ import firestore from '@react-native-firebase/firestore';
 const newsCard = (props) => {
     //TODO: props.newsData.body take the first 100 letters
     const handleArticleBody = (x) => {
-      return x.substring(0,100)
+      return x.substring(0,80)
     }
 
     //Date format
@@ -69,10 +69,14 @@ const newsCard = (props) => {
           },
           { 
             text: "نعم", 
-            onPress: () => firestore()
+            onPress: () => {
+                        const sub = firestore()
                           .collection('news')
                           .doc(article.postID)
                           .delete()
+                        
+                        return () => sub();
+                        }
           }
         ]
       )
@@ -82,12 +86,16 @@ const newsCard = (props) => {
   return(
     <SafeAreaView style={styles.block}>
     <View style={styles.newsBlock}>
-        <View style={{flex:1, alignItems:'flex-end'}}>
+        <View style={{flex:1, alignItems:'flex-end', marginRight:2}}>
             <Text style={styles.title}>{props.newsData.title}</Text> 
             <Text style={[styles.body,{fontStyle:'italic'}]}>{props.newsData.reporter}</Text> 
             <Text style={styles.body}>{handleArticleBody(props.newsData.body)}...</Text> 
         </View>
-        <Image style={styles.img} source={{uri: props.newsData.img}} />
+        {props.newsData.img!= null ?
+          <Image style={styles.img} source={{uri: props.newsData.img}} />
+          :
+          <Image style={styles.img} source={require('../assets/gallary/breaking2.png')} />
+        }
     </View>
     { props.isEditable ?
       <View style={[styles.dateBlock, {borderWidth: 1, borderColor:'#E39B02', height: 35}]}>
@@ -107,6 +115,11 @@ const newsCard = (props) => {
       :
       <View style={styles.dateBlock}>
         <Text style={styles.body}> {handleTime(props.newsData.timestamp.seconds)} </Text> 
+        {/* <Icon
+            name='eye'
+            type='font-awesome'
+            size={20}
+            color='#E39B02'/> */}
         <Text style={styles.body}> {handleDate(props.newsData.timestamp.seconds)} </Text> 
       </View>
     }
@@ -115,7 +128,10 @@ const newsCard = (props) => {
               fullScreen={true}
               overlayStyle={{padding:0}}
               >
-          <NewsForm articleInfo={fullArticle} toggleOverlay={toggleOverlay} cancelButton={true}/>
+          <NewsForm articleInfo={fullArticle} 
+                    toggleOverlay={toggleOverlay} 
+                    cancelButton={true}
+                    />
     </Overlay>
 
     </SafeAreaView>
@@ -123,14 +139,12 @@ const newsCard = (props) => {
  }
 
 const styles = StyleSheet.create({
- container:{
-    flex:1,
-    backgroundColor:  "#323232",
-  },
+
   block:{
     borderRadius: 5,
-    margin: 3,
-    padding:1,
+    margin: 5,
+    marginTop:7,
+    padding:0,
     backgroundColor:'#323232',
     borderWidth:1,
     borderColor: 'black',
@@ -139,6 +153,7 @@ const styles = StyleSheet.create({
     flex:1,
     flexDirection:'row',
     justifyContent:'flex-end',
+    margin:0,
 
   },
   dateBlock: {
@@ -151,15 +166,18 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 5
   },
   title: {
-    fontFamily:'Cheeky Bite Shine - AND',
-    fontSize: 20,
-    textAlign: 'right',
-    color:'white',
-    width:"100%"
-  },
-  body: {
+    fontFamily:'Cairo-Bold',
     fontSize: 15,
     textAlign: 'right',
+    color:'#E39B02',
+    width:"100%",
+    marginTop:5
+  },
+  body: {
+    fontFamily:'NotoKufiArabic-Regular',
+    fontSize: 13,
+    textAlign: 'right',
+    marginTop:5,
     padding: 0,
     color: 'white'
   },
@@ -169,7 +187,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     margin:3,
     resizeMode:'cover',
-    backgroundColor: 'white',
+    //backgroundColor: 'white',
     alignSelf:"center"
   }
   });

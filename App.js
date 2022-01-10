@@ -11,16 +11,18 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Splash from './screens/splash'
-import Hadath from './screens/hadath'
+import Hadathh from './screens/hadathh'
 import AdminsArea from './screens/adminsArea'
-//import HeaderTitle from './components/header'
-
+import { I18nManager, StatusBar } from "react-native";
+I18nManager.forceRTL(false);
+I18nManager.allowRTL(false);
 
 const Stack = createNativeStackNavigator()
 const App = () => {
 
   return (
   <NavigationContainer>
+    <StatusBar barStyle = "dark-content" hidden = {false} backgroundColor = "#323232"/>
       <Stack.Navigator initialRouteName="Home">
         <Stack.Screen
           name="Splash"
@@ -30,8 +32,8 @@ const App = () => {
           }}
         />
         <Stack.Screen
-          name="Hadath"
-          component={Hadath}
+          name="Hadathh"
+          component={Hadathh}
           options={{
             headerShown: false ,
             }}
@@ -40,8 +42,6 @@ const App = () => {
           name="AdminsArea"
           component={AdminsArea}
           options={{
-            //headerTitle: props => <HeaderTitle {...props} />,
-            //headerLeft: null,
             headerShown: false ,
             headerStyle: {
               backgroundColor: '#6183B4',

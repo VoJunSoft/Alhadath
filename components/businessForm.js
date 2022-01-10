@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import {
   StyleSheet,
   ScrollView,
@@ -13,18 +13,16 @@ import {
   ActivityIndicator
 } from 'react-native'
 import { Button, Overlay} from 'react-native-elements' 
+import Icon from 'react-native-vector-icons/FontAwesome';
 import firestore from '@react-native-firebase/firestore';
 import ImagePicker from 'react-native-image-crop-picker';
 import storage from '@react-native-firebase/storage';
 import FormHeader from './formHeader'
-import {Picker} from '@react-native-picker/picker'
 
-const newsForm = (props) => {
-  //const SCREEN_HEIGHT = Dimensions.get('window').height
-  //const SCREEN_WIDTH = Dimensions.get('window').width
-  // useEffect(() => {
+const businessForm = (props) => {
+  const SCREEN_HEIGHT = Dimensions.get('window').height
+  const SCREEN_WIDTH = Dimensions.get('window').width
 
-  // })
   //Date format
   const handleDate = (dataD) => {
     let data= new Date(dataD)
@@ -51,23 +49,23 @@ const newsForm = (props) => {
     const postTime= hrs + ':' + mins
     return postTime
   }
-  //TODO: add the rest of the fields to the article input state
-  const [input, setInput] = useState({
-                          title: props.articleInfo.title,
-                          reporter: props.articleInfo.reporter,
-                          timestamp: props.articleInfo.timestamp, 
-                          img: props.articleInfo.img,
-                          body: props.articleInfo.body, 
-                          category: props.articleInfo.category,
-                            }) //props.articleInfo.postID
+  //pass businessInfo props (from businessBoard.js) to input state disincluding postID
+  const [input, setInput] = useState({   
+        name: props.businessInfo.name,
+        profession: props.businessInfo.profession,
+        timestamp: props.businessInfo.timestamp, 
+        img: props.businessInfo.img, 
+        phone:props.businessInfo.phone,  
+        })
+    props.businessInfo
 
   //Handle image upload: the path from phone to show the chosen picture on screen (before upload)
   const [image, setImage] = useState(props.cancelButton ? input.img : null)
   const [transferred, setTransferred] = useState(0)
   const choosePhotoFromLibrary = () => {
     ImagePicker.openPicker({
-      width: undefined,
-      height: undefined,
+      width: SCREEN_WIDTH,
+      height: 170,
       cropping: true,
     }).then((image) => {
       console.log(image)
@@ -75,16 +73,16 @@ const newsForm = (props) => {
       setImage(imageUri)
     })
     .catch((e) =>{
-
+        setImage(null)
     })
   }
 
   const uploadImage = async () => {
-    if( image === null ) 
-       return null //setInput({...input,img: null});
+    if( image === null) 
+       return  null //setInput({...input,img: null});
     
-    if(image === props.articleInfo.img)
-       return   props.articleInfo.img
+    if(image === props.businessInfo.img)
+        return  props.businessInfo.img
 
     const uploadUri = image;
     let filename = uploadUri.substring(uploadUri.lastIndexOf('/') + 1);
@@ -93,8 +91,10 @@ const newsForm = (props) => {
     const extension = filename.split('.').pop(); 
     const name = filename.split('.').slice(0, -1).join('.');
     filename = name + Date.now() + '.' + extension;
+
     setTransferred(0);
-    const storageRef = storage().ref(`news/${filename}`);
+
+    const storageRef = storage().ref(`cards/${filename}`);
     const task = storageRef.putFile(uploadUri);
 
     // Set transferred state
@@ -118,23 +118,22 @@ const newsForm = (props) => {
 
   const handleSubmit = async () => {
     //TODO: get reporter's name from database
-    if(input.title.length > 12 && input.reporter.length > 7 && input.body.length > 25 && input.category !== ''){
+    if(input.profession.length >= 4 && input.name.length >= 4 && input.phone.length >= 10 ){
       toggleOverlay()
       const imageUri = await uploadImage()
       //setInput({...input, img: imageUri})
       const subscriber = firestore()
-          .collection('news')
+          .collection('business')
           .add({...input, img: imageUri, reporterId: props.reporterInfo})
           .then(() => {
               //reset form info
-             //timestamp:firestore.Timestamp.fromDate(new Date()),
               setInput({   
-                title: '',
-                reporter: input.reporter,
+                name: '',
+                profession: '',
+                //timestamp:firestore.Timestamp.fromDate(new Date()),
                 timestamp:{seconds: Math.floor(Date.now() / 1000)}, 
                 img: null,
-                body: '', 
-                category:''
+                phone: '', 
                 })
               setImage(null)
               setVisible(false)
@@ -142,22 +141,22 @@ const newsForm = (props) => {
               //Alert.alert('تم قبول المقال بنجاح')
           })
           .catch((e)=>{
-              Alert.alert("حدث خلل في تسجيل المقال")
+              Alert.alert("حدث خلل في تسجيل الكرت")
           })
-          return() => subscriber();
+          return () => subscriber();
     }else{
         Alert.alert("ادخل جميع المعلومات")
     }
   }
 
   const handleEdit = async () => {
-    if(input.title.length > 12 && input.reporter.length > 7 && input.body.length > 25 && input.category !== ''){
+    if(input.profession.length >= 4 && input.name.length > 5 && input.phone.length >= 10 ){
         toggleOverlay()
         const imageUri = await uploadImage()
-        //UPDATE article to database based on input.postID (correction: props.articleInfo.postID)
+        //UPDATE article to database based on input.postID
         const subscriber = firestore()
-          .collection('news')
-          .doc(props.articleInfo.postID)
+          .collection('business')
+          .doc(props.businessInfo.postID)
           .update({...input, img: imageUri})
           .then(() => {
             //setImage(null)
@@ -166,9 +165,11 @@ const newsForm = (props) => {
             //Alert.alert('تم تعديل المقال بنجاح')
           })
           .catch((e)=>{
-            Alert.alert("حدث خلل في تعديل المقال")
+            Alert.alert("حدث خلل في تعديل الكرت")
         })
-        return() => subscriber();
+         return () => subscriber();
+    }else{
+        Alert.alert("ادخل جميع المعلومات")
     }
   }
 
@@ -179,50 +180,38 @@ const newsForm = (props) => {
    }
  
   return(
+    
         <>
         { !props.cancelButton ?
-            <FormHeader title='تسجيل مقال جديد' />
+            <FormHeader title='تسجيل كرت عمل جديد' />
             :
-            <FormHeader title='تعديل مقال' />
+            <FormHeader title='تعديل كرت عمل' />
         }
         <ScrollView style={styles.container}>
         <TextInput
-            value={input.title}
+            value={input.name}
             style={[styles.postInput,{marginTop:20}]}
-            onChangeText={text=> setInput({...input,title: text})}
-            maxLength={50}
+            onChangeText={text=> setInput({...input,name: text})}
+            maxLength={25}
             selectionColor="orange"
             placeholderTextColor="white"
-            placeholder="العنوان"
+            placeholder="الاسم"
             underlineColorAndroid='transparent'
+           // autoFocus
          />
-         <Text style={{paddingLeft:7, color: input.title.length < 12 ? 'red': 'green'}}>{input.title.length}/50</Text>
+         <Text style={{paddingLeft:7, color: input.name.length < 5  ? 'red': 'green'}}>{input.name.length}/25</Text>
          <TextInput
-            value={input.reporter}
+            value={input.profession}
             style={styles.postInput}
-            onChangeText={text=> setInput({...input,reporter: text})}
+            onChangeText={text=> setInput({...input,profession: text})}
             numberOfLines={1}
             maxLength={25}
             selectionColor="orange"
             placeholderTextColor="white"
-            placeholder="المراسل"
+            placeholder="المهنه"
             underlineColorAndroid='transparent'
          />
-         <Text style={{paddingLeft:7, color: input.reporter.length < 7 ? 'red': 'green'}}>{input.reporter.length}/25</Text>
-        <View style={styles.postInput}>
-         <Picker
-              selectedValue={input.category}
-              style={{color:'white'}}
-              onValueChange={(itemValue, itemIndex) => setInput({...input, category: itemValue})}
-              >
-              <Picker.Item label='-- فئة المقال --' value="" />
-              <Picker.Item label="اخبار" value="اخبار" />
-              <Picker.Item label="تكنولوجيا" value="تكنولوجيا" />
-              <Picker.Item label="رياضه" value="رياضه" />
-              <Picker.Item label="ثقافه عامه" value="ثقافه" />
-              <Picker.Item label="استثمار" value="استثمار" />
-        </Picker>
-        </View>
+         <Text style={{paddingLeft:7, color: input.profession.length < 4 ? 'red': 'green'}}>{input.profession.length}/25</Text>
         <View style={styles.dateBlock}>
             <TextInput
               value={props.cancelButton ? handleTime(input.timestamp.seconds*1000) : handleTime(Date())}
@@ -241,28 +230,28 @@ const newsForm = (props) => {
               underlineColorAndroid='transparent'
             />
         </View>
+        <TextInput
+            value={input.phone}
+            style={styles.postInput}
+            onChangeText={text=> setInput({...input,phone: text})}
+            keyboardType='numeric'
+            selectionColor="orange"
+            placeholderTextColor="white"
+            underlineColorAndroid='transparent'
+            maxLength={10}
+            placeholder="الهاتف"
+        />
+        <Text style={{paddingLeft:5, color: input.phone.length < 10  ? 'red': 'green'}}>{input.phone.length}/10</Text>
 
         <TouchableOpacity onPress={() => choosePhotoFromLibrary()} style={styles.imgBlock}>
             {image != null ?
               <Image style={styles.img} source={{uri: image}} />
               :
-              <Image style={styles.imgTemp} source={require('../assets/gallary/addImg1.png')} />
+              <Image style={styles.imgTemp} source={require('../assets/gallary/businessCard.png')} />
             }
         </TouchableOpacity>
 
-        <TextInput
-            value={input.body}
-            style={styles.postInput}
-            onChangeText={text=> setInput({...input,body: text})}
-            multiline={true}
-            numberOfLines={10}
-            maxLength={5000}
-            selectionColor="orange"
-            placeholderTextColor="white"
-            placeholder='المقال كامل'
-            underlineColorAndroid='transparent'
-         />
-         <Text style={{paddingLeft:7, color: input.body.length < 25 ? 'red': 'green'}}>{input.body.length}/3000</Text>
+       
          
         <View style={styles.buttonContainer}>
         { props.cancelButton  ?
@@ -280,15 +269,17 @@ const newsForm = (props) => {
                 marginHorizontal: 0,
                 marginVertical: 10,
             }}
+            //iconLeft
+            //iconContainerStyle={{ marginLeft: -10, marginRight: 10 }}
             onPress={() => handleEdit()}
         />
         :
         <Button
-            title="حفظ المقال"
+            title="حفظ الكرت"
             titleStyle={{ fontWeight: 'bold', fontSize: 18, color:'#323232' }}
             buttonStyle={{
-              borderBottomColor:'#323232',
-              borderBottomWidth:3,
+                borderBottomColor:'#323232',
+                borderBottomWidth:3,
                 borderRadius: 20,
                 backgroundColor: '#E39B02'
             }}
@@ -334,7 +325,7 @@ const newsForm = (props) => {
               fullScreen={true}
               overlayStyle={{padding:20}}
               >
-            <ActivityIndicator size={100} color="#E39B02" style={{marginTop: '50%'}}/>
+            <ActivityIndicator size={100} color="#E39B02" marginTop={'50%'} />
             <Text style={styles.loading}>جاري التحميل</Text>
            </Overlay>
     </ScrollView>
@@ -350,7 +341,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily:'NotoKufiArabic-SemiBold',
-    fontSize: 30,
+    fontSize: 20,
     marginTop:10,
     fontWeight: '100',
     padding: 5,
@@ -369,7 +360,7 @@ const styles = StyleSheet.create({
     borderBottomColor:'#E39B02',
     borderBottomWidth:3,
     margin:5,
-    fontFamily: 'Cairo-Regular',
+    fontFamily: "Cairo-Regular",
     textAlign:'right',
     backgroundColor:'#323232',
     color: 'white',
@@ -379,21 +370,21 @@ const styles = StyleSheet.create({
     width:'47%',
     textAlignVertical:'top',
     fontSize: 15,
+    borderBottomColor:'#E39B02',
+    borderBottomWidth:3,
     margin:5,
-    fontFamily: 'Cairo-Regular',
+    fontFamily: "Cairo-Regular",
     textAlign:'center',
     backgroundColor:'#323232',
     color: 'white',
     opacity:0.5,
-    borderRadius:10,
-    borderBottomColor:'#E39B02',
-    borderBottomWidth:3,
+    borderRadius:10
   },
   dateBlock: {
     flex:-1,
     flexDirection:'row',
     justifyContent:'space-around',
-    marginBottom: 5
+    marginBottom: 5,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -408,26 +399,23 @@ const styles = StyleSheet.create({
     flex:1,
     justifyContent:'center',
     width:"97%",
-    height: 150,
-    resizeMode:'cover',
+    height: 170,
+    resizeMode:'contain',
     alignSelf:'center',
     backgroundColor:'#323232',
-    margin:5,
-    borderRadius:10,
     borderBottomColor:'#E39B02',
     borderBottomWidth:3,
     margin:5,
-    fontFamily: 'Cairo-Regular',
+    borderRadius:10,
     overflow:'hidden'
   },
   img: {
     width:"100%",
-    height: '100%',
-    resizeMode:'contain',
+    height: 170,
+    resizeMode:'cover',
     alignSelf:'center',
-    backgroundColor:'#323232',
-    margin:5,
     borderRadius:5,
+    margin:0
   },
   imgTemp: {
     width:120,
@@ -445,4 +433,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default newsForm;
+export default businessForm;

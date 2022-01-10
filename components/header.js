@@ -1,67 +1,140 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
-  SafeAreaView,
   StyleSheet,
   View,
-  Text,
   Image,
   TextInput,
-  searchBar
+  TouchableOpacity,
+  Dimensions
 } from 'react-native';
+import {Icon} from 'react-native-elements';
+import Categories from './categories'
 
 const header = (props) => {
+  const [categoryVisibility, setCategoryVisibility] = useState(false)
 
   return (
+    <>
     <View style={styles.headerBar}>
-        <TextInput
-          autoCapitalize="none"
-          autoCorrect={false}
-          clearButtonMode="always"
-          value={props.query}
-          onChangeText={queryText => props.handleSearch(queryText)}
-          placeholder="بحث..."
-          style={styles.searchBar}
-          textAlign="right"
-        />
-        <Image style={styles.img} source={require("../assets/gallary/alhadath.png")} /> 
+        {props.isBusinessCards ?  
+            <TouchableOpacity onPress={props.switchCards}>
+              <Icon
+                    name='th-list'
+                    type='font-awesome'
+                    size={35}
+                    color={props.isFullCard  ? '#E39B02' : 'white'}
+                    />
+            </TouchableOpacity>
+            :
+            null
+          }
+        {props.isOfferAdmin === 'admin' ?  
+            <TouchableOpacity onPress={props.toggleOverlay}>
+              <Icon
+                    name='plus-square'
+                    type='font-awesome'
+                    size={35}
+                    color='#E39B02' 
+                    />
+            </TouchableOpacity>
+            :
+            null
+          }
+        {props.isNewsCards ?  
+            <TouchableOpacity onPress={props.setSwitchNewsCards}>
+              <Icon
+                    name='eye'
+                    type='font-awesome'
+                    size={35}
+                    color={props.switchNewsCards  ? 'white' : '#E39B02'}
+                    />
+            </TouchableOpacity>
+            :
+            null
+          }
+        <View style={styles.searchBox}>
+        {props.queryData !== '' ?
+          <Icon
+              name='close'
+              type='font-awesome'
+              size={25}
+              onPress={() => props.handleSearch('')}
+              /> 
+              : 
+              null 
+          }
+          <TextInput
+            autoCapitalize="none"
+            autoCorrect={false}
+            clearButtonMode="always"
+            value={props.queryData}
+            onChangeText={queryText => props.handleSearch(queryText)}
+            placeholder="بحث..."
+            style={styles.searchBar}
+            textAlign="right"
+            textAlignVertical="bottom"
+            underlineColorAndroid='transparent'
+          />
+        </View>
+        <TouchableOpacity onPress={() => setCategoryVisibility(!categoryVisibility)}>
+          <Image style={styles.img} 
+                source={require("../assets/gallary/alhadath.png")}/> 
+        </TouchableOpacity>
     </View>
+    
+    { props.isNewsCards ?
+      <>
+        { categoryVisibility ?
+          <Categories handleSearch={props.handleSearch} />
+        :
+        null
+        }
+      </>
+      :
+      null
+    }
+  </>
   )
 }
 
 const styles = StyleSheet.create({
   headerBar: {
-    flex: -1,
+    flex:1,
     flexDirection: "row",
-    justifyContent: 'center',
+    justifyContent: 'space-around',
     alignItems:'center',
     width: '100%',
+    height: 52,
     backgroundColor: "#323232",
-    paddingLeft: 10,
-    paddingRight: 10,
-    // borderBottomColor:'black',
-    // borderBottomWidth:1,
-    // borderBottomRightRadius:4,
-    // borderBottomLeftRadius:4
-  },
-  title: {
-    fontSize: 20,
-    color:'white',
-    textAlign:'center',
+    padding:5 ,
+    borderBottomWidth:3,
+    borderBottomColor:'#E39B02'
   },
   searchBar:{
-    width:'70%',
-    height:30,
-    padding:2,
-    backgroundColor:'lightgray',
+    flex:1, 
+    height:45,
+    color:'black'
+    //backgroundColor:'yellow'
+  },
+  searchBox: {
+    flex:1, 
+    flexDirection:'row',
+    justifyContent:'center', 
+    alignItems:'center',
+    backgroundColor:'white',
+    height:32,
+    margin:7,
     borderWidth:2,
+    borderRadius:15,
+    paddingRight:2,
+    paddingLeft:5,
     borderColor:'#E39B02',
-    borderRadius:50,
-    margin:5
+    
   },
   img: {
-    width: 99,
+    width: 95,
     height:50,
-    resizeMode:"contain"
+    resizeMode:"cover"
   }
 
 });
